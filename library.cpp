@@ -5,16 +5,23 @@
 #include <vector>
 #include <unordered_map>
 
-Translation::Translation(std::string defaultLanguage_) {
+Translation::Translation(std::string defaultLanguage_, bool throwing ) {
     std::locale loc;
     std::string lang = loc.name();
     std::string language_code = lang.substr(0, 2);
 
     this->preferredLanguage = language_code;
     this->defaultLanguage = defaultLanguage_;
+    this->throwing = throwing;
 }
 
-void Translation::addLanguage(TranslationLanguage language) {
+void Translation::addLanguage(std::string language_name,std::string prefix){
+    for (const auto& pair : this->languages) {
+        if (pair.second.prefix == prefix && this->throwing) {throw std::invalid_argument("Key already exists");}
+    }
+    TranslationLanguage language;
+    language.name = language_name;
+    language.prefix = prefix;
     this->avalibleLanguages.push_back(language.prefix);
     this->languages[language.prefix] = language;
 }
@@ -32,6 +39,15 @@ std::string Translation::getByKey(std::string key) {
     }
     return "";
 }
+void Translation::addPhrase(std::string phrase_key, std::string translated_phrase, std::string language) {
+    for (auto& pair : this->languages) {
+        if (pair.second.name == language) {
+            pair.second.translations[phrase_key] = translated_phrase;
+            break;
+        }
+    }
+}
+
 
 void Translation::stdcoutByKey(std::string key,bool withEndl) {
     for (std::string language : this->avalibleLanguages) {
